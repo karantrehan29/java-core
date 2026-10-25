@@ -1,0 +1,103 @@
+# Strings in Java
+
+## String basics
+
+`String` is a class in `java.lang` used to represent text. A String is immutable: 
+after it is created, its contents cannot be changed. Operations that appear to modify a 
+String return a new String instead.
+
+Java's String represents text as UTF-16 code units. Its internal storage is an implementation
+detail and has changed across Java versions, so do not assume it always stores a `char[]`.
+
+## Creating Strings
+
+```java
+String name = "Karan";
+String message = new String("Hello");
+```
+
+String literals are usually preferred. `new String(...)` is valid, but usually unnecessary
+because it explicitly creates another String object.
+
+## String pool and equality
+
+Java can reuse String literals from a pool:
+
+```java
+String first = "Java";
+String second = "Java";
+String third = new String("Java");
+
+boolean sameLiteralReference = first == second;
+boolean sameNewObjectReference = first == third;
+boolean sameText = first.equals(third);
+```
+
+Use `equals()` to compare String contents. `==` checks whether two references point to the
+same object. Do not rely on the pool for content comparisons.
+
+## Common String operations
+
+```java
+String text = "Hello Java";
+
+text.length();                       // 10 UTF-16 code units
+text.charAt(0);                      // 'H'; indexes start at 0
+text.substring(6);                   // "Java"
+text.contains("Java");               // true
+text.startsWith("Hello");            // true
+text.endsWith("Java");               // true
+text.indexOf("Java");                // 6; returns -1 when not found
+text.equals("Hello Java");           // true; compares contents
+text.equalsIgnoreCase("hello java"); // true; ignores letter case
+text.replace("Java", "World");       // "Hello World"; literal replacement
+text.replaceAll("\\s+", "-");        // Replaces matches of a regular expression
+text.split(" ");                     // Splits on a space and returns a String array
+text.trim();                         // Removes leading/trailing characters <= U+0020
+text.strip();                        // Removes leading/trailing Unicode whitespace (Java 11+)
+```
+
+`length()` counts UTF-16 code units, which is not always the same as the number of
+user-perceived characters. `charAt()` returns one UTF-16 `char`.
+
+String methods do not change `text`. Keep the returned value if you need it:
+
+```java
+text = text.replace("Java", "World");
+```
+
+## StringBuilder and StringBuffer
+
+`StringBuilder` is mutable, so its contents can be changed. It is not thread-safe and is
+the usual choice when building text through multiple operations.
+
+```java
+StringBuilder builder = new StringBuilder();
+builder.append("Hello");
+builder.append(" Java");
+builder.insert(5, ",");
+builder.delete(5, 6);
+String result = builder.toString();
+```
+
+Common `StringBuilder` methods include `append()`, `insert()`, `delete()`, `replace()`,
+`reverse()`, and `toString()`.
+
+`StringBuffer` provides similar mutable operations, but its methods are synchronized for
+thread safety. Prefer `StringBuilder` unless shared access between threads requires
+synchronization.
+
+For simple expressions, `+` is convenient. When repeatedly adding text in a loop, use a
+`StringBuilder` to avoid creating many intermediate Strings.
+
+## Autoboxing (separate Java topic)
+
+Autoboxing converts a primitive to its wrapper class automatically; unboxing converts it back:
+
+```java
+Integer boxed = 10; // int to Integer (autoboxing)
+int number = boxed; // Integer to int (unboxing)
+```
+
+Wrapper equality has pitfalls: `==` compares references for objects, so use `equals()` to
+compare wrapper values. Unboxing a `null` wrapper throws `NullPointerException`.

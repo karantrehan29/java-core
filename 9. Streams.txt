@@ -1,0 +1,286 @@
+Streams in Java — Theory 1: The Stream Model
+
+What is a Stream?
+
+A Stream is a way to describe a sequence of data-processing steps. It lets
+you say what you want to do with the elements, such as filter or transform
+them, without writing the iteration mechanics yourself.
+
+A Stream is not a data structure: it does not store elements. The data comes
+from a source, such as a collection or an array. Stream operations generally
+produce a result without changing the source.
+
+A Stream is not inherently parallel. Streams process elements sequentially
+by default. Parallel processing can be requested, but it is not automatically
+faster and should only be used when appropriate.
+
+The pipeline model
+
+A Stream pipeline has three parts:
+
+1. Source: where the elements come from.
+2. Intermediate operations: zero or more steps that filter or transform
+   elements. These return another Stream and can be chained.
+3. Terminal operation: the final step that produces a result or performs an
+   action. It starts the pipeline processing.
+
+Conceptually:
+
+source -> intermediate operations -> terminal operation
+
+Laziness
+
+Intermediate operations are lazy: declaring them does not immediately process
+the elements. Processing starts when a terminal operation is called. This
+allows Java to combine operations and avoid doing work that is not needed.
+
+Single use
+
+A Stream is intended to be used for one pipeline. After a terminal operation
+has run, do not reuse that Stream; create a new Stream from the source if
+another pipeline is needed.
+
+Key distinctions
+
+- The collection or array is the source; the Stream describes processing.
+- A Stream pipeline is not a collection and does not retain the result.
+- Streams use internal iteration: the pipeline controls how elements are
+  visited, unlike a loop where your code controls the iteration.
+- Sequential processing is the default. Parallelism is optional, not the
+  purpose or defining feature of Streams.
+
+Intermediate operations
+
+Intermediate operations return another Stream, so they can be chained. They
+are lazy and do not start processing the elements until a terminal operation
+is called.
+
+Common intermediate operations:
+
+- `filter(predicate)`: keep elements that match a condition.
+- `map(function)`: transform each element.
+- `flatMap(function)`: transform each element into a Stream, then flatten the
+  results into one Stream.
+- `distinct()`: remove duplicate elements.
+- `sorted()` / `sorted(comparator)`: sort the elements.
+- `limit(n)` / `skip(n)`: keep at most the first `n` elements / skip the first
+  `n` elements.
+- `peek(action)`: inspect elements, mainly for debugging; avoid using it for
+  business logic or side effects.
+- `takeWhile(predicate)` / `dropWhile(predicate)`: take or drop elements while
+  a condition holds. These were added in Java 9.
+
+Primitive streams also provide mapping operations such as `mapToInt`,
+`mapToLong`, and `mapToDouble`. Calling `boxed()` converts a primitive stream
+to a Stream of wrapper objects, such as `IntStream` to `Stream<Integer>`.
+
+Terminal operations
+
+A terminal operation ends the pipeline. It either produces a result or
+performs an action, and it triggers processing of the elements.
+
+Common terminal operations:
+
+- `collect(collector)`: gather elements into a result, often a collection.
+- `toList()`: gather elements into a List; added in Java 16.
+- `forEach(action)` / `forEachOrdered(action)`: perform an action for each
+  element, with `forEachOrdered` preserving encounter order.
+- `count()`: count the elements.
+- `reduce(...)`: combine elements into one result.
+- `min(comparator)` / `max(comparator)`: find the smallest or largest element.
+- `findFirst()` / `findAny()`: find an element; return an Optional.
+- `anyMatch(...)` / `allMatch(...)` / `noneMatch(...)`: test whether any, all,
+  or none of the elements match a condition.
+- `toArray()`: gather the elements into an array.
+
+Primitive streams also provide numeric terminal operations such as `sum()`,
+`average()`, and `summaryStatistics()`.
+
+Some terminal operations, such as `findFirst`, `findAny`, `anyMatch`,
+`allMatch`, and `noneMatch`, can stop processing as soon as their answer is
+known. `limit` is a short-circuiting intermediate operation.
+
+`Collectors.groupingBy(...)`, `partitioningBy(...)`, and `toMap(...)` are
+collectors, not Stream operations themselves. They are passed to `collect(...)`.
+
+First code example: filter, transform, collect
+
+This Java 8-compatible example keeps even numbers, doubles them, and collects
+the results into a new List:
+
+```java
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+class StreamBasics {
+    public static void main(String[] args) {
+        List<Integer> numbers = Arrays.asList(2, 5, 8, 3, 10);
+
+        List<Integer> evenDoubles = numbers.stream()
+            .filter(number -> number % 2 == 0)
+            .map(number -> number * 2)
+            .collect(Collectors.toList());
+
+        System.out.println(evenDoubles); // [4, 16, 20]
+        System.out.println(numbers);     // [2, 5, 8, 3, 10]
+    }
+}
+```
+
+Read the pipeline from top to bottom:
+
+1. `numbers.stream()` creates a Stream from the list.
+2. `filter(...)` keeps elements for which the lambda returns `true`.
+3. `map(...)` transforms each remaining number.
+4. `collect(...)` is the terminal operation. It runs the pipeline and stores
+   the results in a new list.
+
+Practice
+
+Given this list:
+
+```java
+List<String> names = Arrays.asList("Sam", "Olivia", "John", "Charlotte");
+```
+
+Use a Stream pipeline to keep names longer than four characters, convert them
+to uppercase, and collect them into a new List. The expected result is
+`[OLIVIA, CHARLOTTE]`.
+
+```java
+List<String> longNames = names.stream()
+    .filter(n -> n.length() > 4)
+    .map(n -> n.toUpperCase())
+    .collect(Collectors.toList());
+```
+
+Practice 2
+
+Given this list:
+
+```java
+List<Integer> numbers = Arrays.asList(3, 8, 1, 6, 10, 5);
+```
+
+Use a Stream pipeline to keep the even numbers, square each one, and collect
+the results into a new List. Preserve the original order. The expected result
+is `[64, 36, 100]`.
+
+```java
+List<Integer> evenSquares = numbers.stream()
+    .filter(n -> n % 2 == 0)
+    .map(n -> n * n)
+    .collect(Collectors.toList());
+```
+
+Practice 3: Second-highest salary
+
+Given this list:
+
+```java
+List<Integer> salaries = Arrays.asList(72000, 85000, 90000, 85000, 68000);
+```
+
+Write a method that uses a Stream pipeline to return the third-highest
+distinct salary. Duplicate salaries count only once. Return
+`Optional.empty()` if the list contains fewer than three distinct salaries.
+
+For this input, the result should be `Optional[72000]`.
+
+Required imports: `java.util.Arrays`, `java.util.Comparator`,
+`java.util.List`, and `java.util.Optional`.
+
+```java
+static Optional<Integer> thirdHighestSalary(List<Integer> salaries) {
+    return salaries.stream()
+        .distinct()
+        .sorted(Comparator.reverseOrder())
+        .skip(2)
+        .findFirst();
+}
+```
+
+Because `salaries` is a List, call `.stream()` directly. For an `int[]`, use
+`Arrays.stream(...)`; that creates an `IntStream`, which needs `.boxed()` to
+use object operations such as a `Comparator`.
+
+Examples of other concepts from Java Core
+
+The examples below use this list:
+
+```java
+List<String> names =
+    Arrays.asList("Sam", "Olivia", "John", "Charlotte", "Sam");
+```
+
+Collectors: groupingBy, partitioningBy, and toMap
+
+`groupingBy` creates a map from a classifier key to a list of matching
+elements:
+
+```java
+Map<Integer, List<String>> namesByLength = names.stream()
+    .collect(Collectors.groupingBy(String::length));
+```
+
+`partitioningBy` splits elements into two groups using a predicate. Its map
+has `true` and `false` keys:
+
+```java
+Map<Boolean, List<String>> longNameGroups = names.stream()
+    .collect(Collectors.partitioningBy(name -> name.length() > 4));
+```
+
+`toMap` uses one function to create each key and another to create its value.
+If keys can repeat, provide a merge function. Here, duplicate names keep the
+existing length:
+
+```java
+Map<String, Integer> lengthByName = names.stream()
+    .collect(Collectors.toMap(
+        name -> name,
+        String::length,
+        (existingLength, duplicateLength) -> existingLength
+    ));
+```
+
+Without a merge function, duplicate keys cause `toMap` to throw
+`IllegalStateException`.
+
+reduce
+
+`reduce` combines the stream elements into one value. The first argument is
+the starting value; the second describes how to combine the running result
+with each element:
+
+```java
+int sum = Arrays.asList(2, 3, 4).stream()
+    .reduce(0, Integer::sum);
+```
+
+The result is `9`.
+
+Optional from a Stream
+
+Operations such as `findFirst()` return an Optional because there might not
+be a matching element:
+
+```java
+Optional<String> firstLongName = names.stream()
+    .filter(name -> name.length() > 4)
+    .findFirst();
+
+String displayName = firstLongName
+    .map(String::toUpperCase)
+    .orElse("No matching name");
+```
+
+Use `orElseThrow(...)` when the value is required and absence should be an
+error:
+
+```java
+String requiredName = firstLongName.orElseThrow(
+    () -> new IllegalStateException("No matching name")
+);
+```

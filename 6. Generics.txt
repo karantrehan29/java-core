@@ -1,0 +1,153 @@
+Generics
+========
+
+Generics allow one class or method to work with different data types while
+still providing compile-time type safety.
+
+Think of `T` as a placeholder for a real type such as `String`, `Integer`, or
+`Animal`.
+
+
+Why do we need generics?
+------------------------
+
+Without generics, a class may need to use `Object`:
+
+```java
+class Box {
+  private Object value;
+
+  public void set(Object value) {
+    this.value = value;
+  }
+
+  public Object get() {
+    return value;
+  }
+}
+```
+
+The caller must cast the returned value:
+
+```java
+Box box = new Box();
+box.set("Hello");
+
+String text = (String) box.get();
+```
+
+This can cause a runtime error if the value has the wrong type.
+
+
+Generic class
+-------------
+
+```java
+class Box<T> {
+  private T value;
+
+  public void set(T value) {
+    this.value = value;
+  }
+
+  public T get() {
+    return value;
+  }
+}
+```
+
+When creating the object, provide the real type:
+
+```java
+Box<String> nameBox = new Box<>();
+nameBox.set("Alice");
+String name = nameBox.get();
+
+Box<Integer> numberBox = new Box<>();
+numberBox.set(10);
+int number = numberBox.get();
+```
+
+`Box<String>` can store only strings, and `Box<Integer>` can store only
+integers. The compiler checks this for us.
+
+
+Generics with collections
+-------------------------
+
+```java
+List<String> names = new ArrayList<>();
+names.add("Alice");
+names.add("Bob");
+
+List<Integer> numbers = new ArrayList<>();
+numbers.add(10);
+numbers.add(20);
+```
+
+The `List` class is reusable, but each list can be restricted to one type.
+
+Common examples:
+
+```java
+Set<String> names = new HashSet<>();
+Map<String, Integer> ages = new HashMap<>();
+```
+
+`Map<String, Integer>` means the keys are `String` values and the values are
+`Integer` values.
+
+
+Generic method
+--------------
+
+A method can also define its own type parameter:
+
+```java
+public static <T> void printValue(T value) {
+  System.out.println(value);
+}
+```
+
+Usage:
+
+```java
+printValue("Hello");
+printValue(10);
+printValue(true);
+```
+
+The `<T>` before `void` declares the method's type parameter. The `T` in the
+parameter means the method accepts that type.
+
+
+Common type parameter names
+---------------------------
+
+- `T` - Type
+- `E` - Element, commonly used in collections
+- `K` - Key
+- `V` - Value
+
+These are conventions. They are not special Java keywords.
+
+
+Important rule
+--------------
+
+Generics use reference types, not primitive types. Use wrapper classes instead:
+
+```java
+List<Integer> numbers = new ArrayList<>(); // Correct
+// List<int> numbers = new ArrayList<>();  // Incorrect
+```
+
+Java automatically converts between `int` and `Integer` when needed. This is
+called autoboxing and unboxing.
+
+
+Simple definition
+-----------------
+
+Generics let us write reusable code that works with different types while
+letting the compiler prevent invalid type usage.

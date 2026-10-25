@@ -1,0 +1,59 @@
+Streams & Lambdas (Functional Java)
+
+1. Functional interfaces
+
+A functional interface has exactly one abstract method (SAM: Single Abstract Method). It can be implemented with a lambda expression or a method reference.
+
+@FunctionalInterface is optional, but it asks the compiler to check that the interface has one abstract method. Default and static methods are allowed; methods matching public methods on Object do not count as additional abstract methods.
+
+@FunctionalInterface
+interface PaymentGateway {
+    void performPayment(int amount);
+}
+
+PaymentGateway gateway = amount -> System.out.println("Paid: " + amount);
+gateway.performPayment(100);
+
+Common built-in functional interfaces (java.util.function):
+
+- Predicate<T>: T -> boolean; test a condition.
+- Function<T, R>: T -> R; transform a value.
+- Consumer<T>: T -> void; consume or act on a value.
+- Supplier<T>: () -> T; provide a value.
+- UnaryOperator<T>: T -> T; transform a value to the same type.
+- BinaryOperator<T>: (T, T) -> T; combine two values of the same type.
+
+Examples:
+
+Predicate<String> isLong = text -> text.length() > 5;
+Function<String, Integer> length = text -> text.length();
+Consumer<String> print = text -> System.out.println(text);
+Supplier<String> greeting = () -> "Hello";
+
+2. Lambda expressions
+
+General form:
+
+(parameters) -> expression
+(parameters) -> { statements; }
+
+Examples:
+
+Runnable task = () -> System.out.println("Running");
+Comparator<String> byLength =
+        (left, right) -> Integer.compare(left.length(), right.length());
+
+If the body has one expression, its value is returned implicitly when required. A block body needs an explicit return for a non-void result. Parameter types can usually be inferred from the target functional interface.
+
+Lambdas can capture local variables only when they are final or effectively final (assigned once and not reassigned). They do not create a new scope for `this`; `this` refers to the enclosing object.
+
+3. Method references
+
+Method references are a concise form of a lambda when an existing method already does the required work:
+
+names.forEach(System.out::println);       // instance method on a particular object
+String::trim;                             // instance method on an arbitrary object
+Integer::parseInt;                        // static method
+ArrayList::new;                           // constructor
+
+Use a lambda instead when it makes the logic clearer or adapts arguments in a way that is not obvious.

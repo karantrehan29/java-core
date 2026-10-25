@@ -1,0 +1,149 @@
+SOLID stands for:
+
+1. Single Responsibility Principle: A class should have one reason to change.
+
+Example:
+interface PaymentMethod {
+    boolean doPayment();
+}
+
+class Payment {
+
+    private final PaymentMethod paymentMethod;
+
+    public Payment(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public boolean performPayment() {
+        return paymentMethod.doPayment();
+    }
+}
+
+2. Open/Closed Principle: Software entities should be open for extension but
+	closed for modification.
+
+Example:
+class CreditCard implements PaymentMethod {
+
+    @Override
+    public boolean doPayment() {
+        System.out.println("Payment made using credit card");
+        return true;
+    }
+}
+
+class NetBanking implements PaymentMethod {
+
+    @Override
+    public boolean doPayment() {
+        System.out.println("Payment made using net banking");
+        return true;
+    }
+}
+
+
+3. Liskov Substitution Principle: Subclasses should be replaceable for their
+	parent classes without breaking the expected behavior of the program.
+
+class Manager {
+
+    public void managePayment(PaymentMethod paymentMethod) {
+        Payment payment = new Payment(paymentMethod);
+        payment.performPayment();
+    }
+
+    public void example() {
+        CreditCard card = new CreditCard();
+        NetBanking netBanking = new NetBanking();
+
+        managePayment(card);
+        managePayment(netBanking);
+    }
+
+}
+
+Composition over inheritance:
+Prefer composing objects to extending classes when possible. Composition
+represents a "has-a" relationship, while inheritance represents an "is-a"
+relationship. Composition usually provides more flexibility because behavior
+can be changed by supplying a different dependency.
+
+Example:
+interface Engine {
+    void start();
+}
+
+class Car {
+    private final Engine engine;
+
+    public Car(Engine engine) {
+        this.engine = engine;
+    }
+
+    public void startCar() {
+        engine.start();
+    }
+}
+
+4. Interface Segregation Principle: Classes should not be forced to depend on
+	methods they do not need. Prefer small, focused interfaces over large ones.
+
+Example:
+interface Printer {
+    void print();
+}
+
+interface Scanner {
+    void scan();
+}
+
+class SimplePrinter implements Printer {
+
+    @Override
+    public void print() {
+        System.out.println("Printing document");
+    }
+}
+
+class MultiFunctionPrinter implements Printer, Scanner {
+
+    @Override
+    public void print() {
+        System.out.println("Printing document");
+    }
+
+    @Override
+    public void scan() {
+        System.out.println("Scanning document");
+    }
+}
+
+5. Dependency Inversion Principle: High-level and low-level modules should
+	depend on abstractions, not directly on each other.
+
+Example:
+interface PaymentGateway {
+    boolean pay(double amount);
+}
+
+class StripePaymentGateway implements PaymentGateway {
+
+    @Override
+    public boolean pay(double amount) {
+        System.out.println("Paid using Stripe");
+        return true;
+    }
+}
+
+class PaymentService {
+    private final PaymentGateway paymentGateway;
+
+    public PaymentService(PaymentGateway paymentGateway) {
+        this.paymentGateway = paymentGateway;
+    }
+
+    public boolean makePayment(double amount) {
+        return paymentGateway.pay(amount);
+    }
+}
